@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping>
+
+	<class name="com.itsv.gbp.core.group.vo.Gbp_grouprole" table="gbp_grouprole" lazy="false">
+
+		<id name="id" type="java.lang.String" column="ID">
+			<generator class="uuid.hex" />
+		</id>
+
+		<property name="groupid" type="java.lang.String" column="GROUPID" not-null="true"  length="32"  />
+
+		<property name="roleid" type="java.lang.String" column="ROLEID" not-null="true"  length="32"  />
+
+  	</class>
+</hibernate-mapping>

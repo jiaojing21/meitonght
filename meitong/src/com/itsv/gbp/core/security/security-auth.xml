@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="GBK"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<!-- ======================== 用户认证部分 ======================= -->
+
+	<!--  该部分需要我们用户登录验证类，可以根据用户名加载到完整的用户信息。 -->
+
+	<!-- 
+		
+		认证管理器。其本身并没有认证功能，而是委托Provider进行用户认证。
+		认证管理器会逐个调用认证提供类，直到认证成功。
+		（因此，认证提供类的顺序非常重要，常用的要放在最前面）
+		
+		Acegi当前提供了如下AuthenticationProvider的实现：
+		DaoAuthenticationProvider 从数据库中读取用户信息验证身份
+		AnonymousAuthenticationProvider 匿名用户身份认证
+		RememberMeAuthenticationProvider 已存cookie中的用户信息身份认证
+		AuthByAdapterProvider 使用容器的适配器验证身份
+		CasAuthenticationProvider 根据Yale中心认证服务验证身份, 用于实现单点登陆
+		JaasAuthenticationProvider 从JASS登陆配置中获取用户信息验证身份
+		RemoteAuthenticationProvider 根据远程服务验证用户身份
+		RunAsImplAuthenticationProvider 对身份已被管理器替换的用户进行验证
+		X509AuthenticationProvider 从X509认证中获取用户信息验证身份
+		TestingAuthenticationProvider 单元测试时使用
+	-->
+	<bean id="security.auth.manager" class="org.acegisecurity.providers.ProviderManager">
+		<property name="providers">
+			<list>
+				<ref local="security.auth.provider.db" />
+			</list>
+		</property>
+		<property name="sessionController">
+			<!-- 阻止用同一用户名多次登录 -->
+			<bean id="concurrentSessionController"
+				class="org.acegisecurity.concurrent.ConcurrentSessionControllerImpl">
+				<property name="maximumSessions" value="${security.maxConcurrentSession}" />
+				<property name="sessionRegistry" ref="security.filter.session.registry" />
+				<property name="exceptionIfMaximumExceeded" value="true" />
+			</bean>
+		</property>
+	</bean>
+
+
+	<!-- 
+		处理用户登录验证。它本身不做验证，而是委托userDetailsService进行验证。
+		可以设置userCache属性对用户信息加缓存，虽然很方便，但是不好。缓存还是应该在业务类加。
+	-->
+	<bean id="security.auth.provider.db"
+		class="org.acegisecurity.providers.dao.DaoAuthenticationProvider">
+		<property name="userDetailsService" ref="security.auth.source" />
+		<!--  
+			默认密码明文存放在数据库，如果数据库里的密码进行了MD5加密，则需要设置该属性
+			-->
+			<property name="passwordEncoder">
+			<bean class="org.acegisecurity.providers.encoding.Md5PasswordEncoder"/>
+			</property>
+			<!--
+		-->
+	</bean>
+
+	<!-- 真正的用户登录验证类 security.auth.dbsource 定义在主安全配置文件里  -->
+
+</beans>

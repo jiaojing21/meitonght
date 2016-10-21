@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping>
+
+	<class name="com.itsv.gbp.core.admin.vo.AppLog" table="gbp_log" lazy="false">
+		<id name="id" type="java.lang.String" column="id">
+			<generator class="uuid.hex" />
+		</id>
+
+		<property name="userId" type="java.lang.String" column="userid" not-null="true"
+			length="32" />
+		<property name="type" type="java.lang.String" column="ltype" length="50" />
+		<property name="time" type="java.util.Date" column="ltime" length="19" />
+		<property name="info" type="java.lang.String" column="info" length="800" />
+	</class>
+</hibernate-mapping>

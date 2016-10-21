@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping>
+    <class name="com.itsv.platform.common.fileMgr.vo.ZjWjlb" table="ZJ_WJLB" lazy="false">
+        <id name="cclbbhPk" type="java.lang.String">
+            <column name="CCLBBH_PK" length="32" />
+            <generator class="uuid.hex" />
+        </id>
+        <property name="cclbmc" type="java.lang.String">
+            <column name="CCLBMC" length="60" not-null="true" />
+        </property>
+        <property name="lbmcbb" type="java.lang.Long">
+            <column name="LBMCBB" length="11" />
+        </property>
+        <property name="ccgml" type="java.lang.String">
+            <column name="CCGML" not-null="true" />
+        </property>
+        <property name="ejmlgz" type="java.lang.String">
+            <column name="EJMLGZ" length="1" not-null="true" />
+        </property>
+        <property name="gzfzzd" type="java.lang.String">
+            <column name="GZFZZD" />
+        </property>
+        <property name="iszip" type="java.lang.Long">
+            <column name="ISZIP" length="11" />
+        </property>
+        <property name="isencrypt" type="java.lang.Long">
+            <column name="ISENCRYPT" length="11" />
+        </property>
+        <property name="zt" type="java.lang.String">
+            <column name="ZT" length="1" />
+        </property>
+        <property name="bz" type="java.lang.String">
+            <column name="BZ" />
+        </property>
+        <property name="xmFk" type="java.lang.String">
+            <column name="XM_FK" length="32" />
+        </property>
+    </class>
+</hibernate-mapping>

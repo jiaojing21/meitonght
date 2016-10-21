@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="GBK"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+   <!-- ======================== 访问控制管理器。负责验证用户是否有权限访问特定功能 ======================= -->
+   <!-- 访问控制管理器。 -->	
+   <bean id="security.check.manager" class="org.acegisecurity.vote.AffirmativeBased">
+      <property name="allowIfAllAbstainDecisions" value="false"/>
+      <property name="decisionVoters">
+         <list>
+            <ref bean="security.check.roleCheck"/>
+         </list>
+      </property>
+   </bean>
+   
+   <!-- 基于角色的访问控制类。
+   注意：该类默认角色名以 ROLE_ 开头，如果应用角色名不是这样，需设置rolePrefix属性。这儿设置为空 -->
+   <bean id="security.check.roleCheck" class="org.acegisecurity.vote.RoleVoter">
+   		<property name="rolePrefix" value=""/>
+   </bean>
+   
+</beans>
