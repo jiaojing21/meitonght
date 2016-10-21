@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping>
+
+	<class name="com.itsv.gbp.core.admin.vo.Menu" table="gbp_menu" lazy="false">
+		<id name="id" type="java.lang.String" column="id">
+			<generator class="uuid.hex" />
+		</id>
+
+		<property name="code" type="java.lang.String" column="code" length="50" />
+		<property name="name" type="java.lang.String" column="name" length="50" />
+		<property name="action" type="java.lang.String" column="action" length="200" />
+		<property name="remark" type="java.lang.String" column="remark" length="200" />
+		<property name="idClass" type="java.lang.Integer" column="idclass" length="11" />
+		<!-- property name="mtype" type="java.lang.Integer" column="mtype" length="11" / -->
+		<property name="enabled" type="java.lang.Boolean" column="enabled" length="1" />
+		<property name="leaf" type="java.lang.Boolean" column="isleaf" length="1" />
+	</class>
+</hibernate-mapping>

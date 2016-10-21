@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping>
+
+	<class name="com.itsv.gbp.core.group.vo.Gbp_group" table="gbp_group" lazy="false">
+
+		<id name="id" type="java.lang.String" column="GROUPID">
+			<generator class="uuid.hex" />
+		</id>
+
+		<property name="groupremarks" type="java.lang.String" column="GROUPREMARKS"  length="1024"  />
+
+		<property name="groupname" type="java.lang.String" column="GROUPNAME" not-null="true"  length="255"  />
+
+  	</class>
+</hibernate-mapping>

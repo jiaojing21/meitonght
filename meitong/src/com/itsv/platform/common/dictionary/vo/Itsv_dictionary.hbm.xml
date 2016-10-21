@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping>
+
+	<class name="com.itsv.platform.common.dictionary.vo.Itsv_dictionary" table="itsv_dictionary" lazy="false">
+
+		<id name="id" type="java.lang.String" column="ID">
+			<generator class="uuid.hex" />
+		</id>
+
+		<property name="parentcode" type="java.lang.String" column="PARENTCODE"  length="32"  />
+
+		<property name="code" type="java.lang.String" column="CODE"  length="32"  />
+
+		<property name="codeclass" type="java.lang.Long" column="CODECLASS"  length="11"  />
+
+		<property name="dictno" type="java.lang.Long" column="DICTNO" not-null="true"  length="11"  />
+
+		<property name="dictname" type="java.lang.String" column="DICTNAME"  length="32"  />
+
+		<property name="description" type="java.lang.String" column="DESCRIPTION"  length="128"  />
+
+		<property name="hardcode" type="java.lang.String" column="HARDCODE"  length="32"  />
+
+		<property name="candelete" type="java.lang.Long" column="CANDELETE"  length="11"  />
+
+		<property name="type" type="java.lang.String" column="TYPE"  length="2"  />
+		
+		<property name="brandcode" type="java.lang.String" column="BRANDCODE"  length="255"  />
+		
+		<property name="exterior" type="java.lang.String" column="EXTERIOR"  length="2"  />
+		
+		<property name="screen" type="java.lang.String" column="SCREEN"  length="2"  />
+  	</class>
+</hibernate-mapping>

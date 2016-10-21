@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="GBK"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<!-- ======================== 安全过滤器 ======================= -->
+	<!-- 
+		该部分需要我们提供两个类，一个指明哪些资源需要安全传输的数据类，一个功能权限的数据类。 -->
+
+	<!--  
+		总的安全过滤器设置链。
+		在这儿，可以指定某个URL会应用哪些过滤器，并指定过滤器的顺序。 该配置一般不用改动。
+		注意：过滤器类的顺序不能变，而且，该过滤器必须定义在web.xml的最外层。
+		
+		完整的过滤器排列顺序如下：
+		ChannelProcessingFilter
+		ConcurrentSessionFilter
+		HttpSessionContextIntegrationFilter
+		logoutFilter 
+		AuthenticationProcessingFilter, CasProcessingFilter, BasicProcessingFilter, HttpRequestIntegrationFilter, JbossIntegrationFilter etc
+		SecurityContextHolderAwareRequestFilter
+		RememberMeProcessingFilter
+		AnonymousProcessingFilter
+		ExceptionTranslationFilter
+		FilterSecurityInterceptor
+	-->
+	<bean id="security.filter.manager" class="org.acegisecurity.util.FilterChainProxy">
+		<property name="filterInvocationDefinitionSource">
+			<value>
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON 
+				PATTERN_TYPE_APACHE_ANT
+				/**=security.filter.channel,security.filter.sessionIntegration,security.filter.logout,security.filter.jcaptcha,security.filter.jcaptchachannel,security.filter.formAuth,security.filter.basicAuth,security.filter.requestWrap,security.filter.exceptionTranslation,security.filter.filterInvocation
+			</value>
+		</property>
+	</bean>
+
+	<!--  
+		这个类设计的很烦。以后需要改一下
+		
+		通道处理过滤器，指定某些资源必须使用安全加密传输 
+		注意：路径的设置顺序很重要，在前面的路径优先匹配。
+		
+		默认可以处理 http:80-https:433 和http:8080-https:8443 两种端口设置。
+		如果server的端口不是这两种情况，需要在两个channelProcessor里设置 entryPoint 属性，在该属性里设置 PortMapperImpl 来处理指定的端口映射
+	-->
+	<bean id="security.filter.channel"
+		class="org.acegisecurity.securechannel.ChannelProcessingFilter">
+		<property name="filterInvocationDefinitionSource" ref="security.filter.channel.source" />
+		<property name="channelDecisionManager">
+			<bean class="org.acegisecurity.securechannel.ChannelDecisionManagerImpl">
+				<property name="channelProcessors">
+					<list>
+						<bean class="org.acegisecurity.securechannel.SecureChannelProcessor" />
+						<bean class="org.acegisecurity.securechannel.InsecureChannelProcessor" />
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<!-- 安全通道数据的提供类 security.filter.channel.source 定义在主安全配置文件中 -->
+
+	<!--  session整合过滤器。自动将用户身份信息存放在session里。 -->
+	<bean id="security.filter.sessionIntegration"
+		class="org.acegisecurity.context.HttpSessionContextIntegrationFilter">
+		<property name="context" value="org.acegisecurity.captcha.CaptchaSecurityContextImpl" />
+	</bean>
+
+	<!-- 退出处理过滤器 -->
+	<bean id="security.filter.logout" class="org.acegisecurity.ui.logout.LogoutFilter">
+		<property name="filterProcessesUrl" value="${security.logout.url}" />
+		<!-- 退出后指向的 URL -->
+		<constructor-arg value="${security.logout.redirectUrl}" />
+		<constructor-arg>
+			<list>
+				<bean class="org.acegisecurity.ui.logout.SecurityContextLogoutHandler" />
+				<bean class="com.itsv.gbp.core.security.support.SessionLogoutHandler">
+					<property name="sessionRegistry" ref="security.filter.session.registry" />
+				</bean>
+			</list>
+		</constructor-arg>
+	</bean>
+	<bean id="security.filter.session.registry"
+		class="org.acegisecurity.concurrent.SessionRegistryImpl" />
+
+	<!-- jcaptacha过滤器 -->
+	<bean id="security.filter.jcaptcha"
+		class="org.acegisecurity.captcha.CaptchaValidationProcessingFilter">
+		<property name="captchaService" ref="security.captcha.serviceproxy" />
+		<property name="captchaValidationParameter" value="j_captcha_response" />
+	</bean>
+	<bean id="security.captcha.serviceproxy"
+		class="com.itsv.gbp.core.security.jcaptcha.JCaptchaServiceProxyImpl">
+		<property name="jcaptchaService" ref="security.captcha.service" />
+	</bean>
+	<bean id="security.captcha.service"
+		class="com.octo.captcha.service.image.DefaultManageableImageCaptchaService">
+		<constructor-arg type="com.octo.captcha.service.captchastore.CaptchaStore" index="0">
+			<bean class="com.octo.captcha.service.captchastore.FastHashMapCaptchaStore" />
+		</constructor-arg>
+		<constructor-arg type="com.octo.captcha.engine.CaptchaEngine" index="1">
+			<bean class="com.itsv.gbp.core.security.jcaptcha.CaptchaEngine" />
+		</constructor-arg>
+		<constructor-arg index="2">
+			<value>180</value>
+		</constructor-arg>
+		<constructor-arg index="3">
+			<value>100000</value>
+		</constructor-arg>
+		<constructor-arg index="4">
+			<value>75000</value>
+		</constructor-arg>
+	</bean>
+	<!-- 配合jcaptacha，处理登录图片错误 -->
+	<bean id="security.filter.jcaptchachannel"
+		class="org.acegisecurity.securechannel.ChannelProcessingFilter">
+		<property name="channelDecisionManager" ref="security.filter.jcaptcha.channelManager" />
+		<property name="filterInvocationDefinitionSource">
+			<value>
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON 
+				PATTERN_TYPE_APACHE_ANT
+				${security.formAuth.loginUrl}=REQUIRES_CAPTCHA_ONCE_ABOVE_THRESOLD_REQUESTS
+			</value>
+		</property>
+	</bean>
+	<bean id="security.filter.jcaptcha.channelManager"
+		class="org.acegisecurity.securechannel.ChannelDecisionManagerImpl">
+		<property name="channelProcessors">
+			<list>
+				<ref local="testOnceAfterMaxRequestsCaptchaChannelProcessor" />
+				<ref local="alwaysTestAfterTimeInMillisCaptchaChannelProcessor" />
+				<ref local="alwaysTestAfterMaxRequestsCaptchaChannelProcessor" />
+				<ref local="alwaysTestBelowAverageTimeInMillisBetweenRequestsChannelProcessor" />
+			</list>
+		</property>
+	</bean>
+	<!-- REQUIRES_CAPTCHA_ONCE_ABOVE_THRESOLD_REQUESTS -->
+	<bean id="testOnceAfterMaxRequestsCaptchaChannelProcessor"
+		class="org.acegisecurity.captcha.TestOnceAfterMaxRequestsCaptchaChannelProcessor">
+		<property name="thresold" value="0" />
+		<property name="entryPoint" ref="security.filter.jcaptcha.captchaEntryPoint" />
+	</bean>
+	<!-- REQUIRES_CAPTCHA_ABOVE_THRESOLD_REQUESTS -->
+	<bean id="alwaysTestAfterMaxRequestsCaptchaChannelProcessor"
+		class="org.acegisecurity.captcha.AlwaysTestAfterMaxRequestsCaptchaChannelProcessor">
+		<property name="thresold" value="5" />
+		<property name="entryPoint" ref="security.filter.jcaptcha.captchaEntryPoint" />
+	</bean>
+	<!-- REQUIRES_CAPTCHA_AFTER_THRESOLD_IN_MILLIS -->
+	<bean id="alwaysTestAfterTimeInMillisCaptchaChannelProcessor"
+		class="org.acegisecurity.captcha.AlwaysTestAfterTimeInMillisCaptchaChannelProcessor">
+		<property name="thresold" value="5000" />
+		<property name="entryPoint" ref="security.filter.jcaptcha.captchaEntryPoint" />
+	</bean>
+	<!-- REQUIRES_CAPTCHA_BELOW_AVERAGE_TIME_IN_MILLIS_REQUESTS -->
+	<bean id="alwaysTestBelowAverageTimeInMillisBetweenRequestsChannelProcessor"
+		class="org.acegisecurity.captcha.AlwaysTestBelowAverageTimeInMillisBetweenRequestsChannelProcessor">
+		<property name="thresold" value="20000" />
+		<property name="entryPoint" ref="security.filter.jcaptcha.captchaEntryPoint" />
+	</bean>
+	<bean id="security.filter.jcaptcha.captchaEntryPoint"
+		class="org.acegisecurity.captcha.CaptchaEntryPoint">
+		<property name="captchaFormUrl" value="${security.formAuth.jcaptchaFailUrl}" />
+		<property name="includeOriginalRequest" value="false" />
+		<property name="includeOriginalParameters" value="false" />
+	</bean>
+
+
+	<!--  basic认证过滤器。允许用户使用HTTP BASE方式提交用户名和密码（即将信息设置在header里）。 -->
+	<bean id="security.filter.basicAuth"
+		class="org.acegisecurity.ui.basicauth.BasicProcessingFilter">
+		<property name="authenticationManager" ref="security.auth.manager" />
+		<property name="authenticationEntryPoint" ref="security.filter.basicAuth.entry" />
+	</bean>
+	<bean id="security.filter.basicAuth.entry"
+		class="org.acegisecurity.ui.basicauth.BasicProcessingFilterEntryPoint">
+		<property name="realmName" value="${security.basicAuth.realmName}" />
+	</bean>
+
+	<!--  form认证过滤器。允许用户使用form方式提交用户名和密码。 -->
+	<bean id="security.filter.formAuth"
+		class="org.acegisecurity.ui.webapp.AuthenticationProcessingFilter">
+		<property name="authenticationManager" ref="security.auth.manager" />
+		<property name="authenticationFailureUrl" value="${security.formAuth.failUrl}" />
+		<property name="defaultTargetUrl" value="${security.formAuth.redirectUrl}" />
+		<property name="alwaysUseDefaultTargetUrl" value="true" />
+		<property name="filterProcessesUrl" value="${security.formAuth.loginUrl}" />
+	</bean>
+
+	<!--  request包装过滤器。 -->
+	<bean id="security.filter.requestWrap"
+		class="org.acegisecurity.wrapper.SecurityContextHolderAwareRequestFilter" />
+
+	<!-- 异常转换过滤器，相当于以前版本的SecurityEnforcementFilter。为每个异常找到合适的"去向"  -->
+	<bean id="security.filter.exceptionTranslation"
+		class="org.acegisecurity.ui.ExceptionTranslationFilter">
+		<property name="authenticationEntryPoint" ref="security.filter.basicAuth.entry" />
+	</bean>
+
+	<!--  
+		安全处理过滤器。判断是否用户是否有权限访问指定资源。
+		与老版本相比，该过滤器不再有失败后的重定向设置，那么如果用户访问无权资源会怎么样？待测试
+	-->
+	<bean id="security.filter.filterInvocation"
+		class="org.acegisecurity.intercept.web.FilterSecurityInterceptor">
+		<property name="authenticationManager" ref="security.auth.manager" />
+		<property name="accessDecisionManager" ref="security.check.manager" />
+		<property name="objectDefinitionSource" ref="security.check.source" />
+	</bean>
+
+	<!-- 功能权限数据的提供类  security.check.source 定义在主安全配置文件里 -->
+
+</beans>
